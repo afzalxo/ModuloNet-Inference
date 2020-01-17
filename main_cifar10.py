@@ -19,7 +19,7 @@ def demod(logits, k):
     return dist
 
 def main():
-    model_path = './autosave-cifar10-20ep-bn_before_maxpool-7783.npz'
+    model_path = 'autosave-cifar10-baseline-20ep-8013.npz'#'./autosave-cifar10-20ep-bn_before_maxpool-7783.npz'
     arch = bin_convnet.BinCNN(model_path)
     (_, _), (test_data, test_labels) = input_data.load_data()
     test_data = np.reshape(test_data/255. * 2 - 1, (-1, 32, 32, 3))
