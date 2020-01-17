@@ -27,8 +27,9 @@ def main():
 
     y = tf.placeholder(tf.float32, [None]+list(test_labels.shape[1:]))
     inp_placeholder = tf.placeholder(tf.float32, [None]+list(test_data.shape[1:]))
-    res = arch.build_convnet(inp_placeholder)
-    res1 = res#demod(res, 8.)
+
+    res1 = arch.build_convnet(inp_placeholder)
+
     loss = tf.reduce_mean(tf.square(tf.maximum(0., 1.-y*res1)))
     correct_pred = tf.equal(tf.argmax(res1, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
