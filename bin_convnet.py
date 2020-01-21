@@ -42,56 +42,73 @@ class BinCNN:
 
     def build_convnet(self, in_act):
         epsilon = 1e-4
-    
+        modk = 1024
         _psi, _phi = self.compute_psi_phi('l0', epsilon=epsilon)
         l0 = self.bin_conv2d(in_act, self.model['l0_w'], tf.math.round(self.model['l0_b']+_phi/_psi), padding = 'SAME', name='bin_conv2d_l0')
+        l0 = self.mod_layer(l0, modk)
         #l0 = _psi * l0 + _phi
         #l0 = tf.nn.batch_normalization(tf.cast(l0, dtype=tf.float32), mean=self.model['l0_mean'], variance=self.model['l0_variance'], offset=self.model['l0_beta'], scale=self.model['l0_gamma'], variance_epsilon=1e-4, name='bin_conv2d0_bn')
-        l0 = self.sign_binarize(l0)
+        #l0 = self.sign_binarize(l0)
+        l0 = -self.sign_binarize(l0 - modk/2.)
 
         _psi, _phi = self.compute_psi_phi('l1', epsilon=epsilon)
         l1 = self.bin_conv2d(l0, self.model['l1_w'], tf.math.round(self.model['l1_b']+_phi/_psi), padding = 'SAME', name='bin_conv2d_l1')
+        l1 = self.mod_layer(l1, modk)
         #l1 = _psi * l1 + _phi
         #l1 = tf.nn.batch_normalization(tf.cast(l1, dtype=tf.float32), mean=self.model['l1_mean'], variance=self.model['l1_variance'], offset=self.model['l1_beta'], scale=self.model['l1_gamma'], variance_epsilon=1e-4, name='bin_conv2d1_bn')
+        l1 = -self.sign_binarize(l1 - modk/2.)
         l1 = tf.nn.max_pool(l1, ksize=(2, 2), strides=(2, 2), padding='VALID')
-        l1 = self.sign_binarize(l1)
+        #l1 = self.sign_binarize(l1)
 
         _psi, _phi = self.compute_psi_phi('l2', epsilon=epsilon)
         l2 = self.bin_conv2d(l1, self.model['l2_w'], tf.math.round(self.model['l2_b']+_phi/_psi), padding = 'SAME', name='bin_conv2d_l2')
+        l2 = self.mod_layer(l2, modk)
         #l2 = tf.nn.batch_normalization(tf.cast(l2, dtype=tf.float32), mean=self.model['l2_mean'], variance=self.model['l2_variance'], offset=self.model['l2_beta'], scale=self.model['l2_gamma'], variance_epsilon=1e-4, name='bin_conv2d2_bn')
-        l2 = self.sign_binarize(l2)
+        l2 = -self.sign_binarize(l2 - modk/2.)
+        #l2 = self.sign_binarize(l2)
     
         _psi, _phi = self.compute_psi_phi('l3', epsilon=epsilon)
         l3 = self.bin_conv2d(l2, self.model['l3_w'], tf.math.round(self.model['l3_b']+_phi/_psi), padding = 'SAME', name='bin_conv2d_l3')
+        l3 = self.mod_layer(l3, modk)
         #l3 = tf.nn.batch_normalization(tf.cast(l3, dtype=tf.float32), mean=self.model['l3_mean'], variance=self.model['l3_variance'], offset=self.model['l3_beta'], scale=self.model['l3_gamma'], variance_epsilon=1e-4, name='bin_conv2d3_bn')
+        l3 = -self.sign_binarize(l3 - modk/2.)
         l3 = tf.nn.max_pool(l3, ksize=(2, 2), strides=(2, 2), padding='VALID')
-        l3 = self.sign_binarize(l3)
+        #l3 = self.sign_binarize(l3)
 
         _psi, _phi = self.compute_psi_phi('l4', epsilon=epsilon)
         l4 = self.bin_conv2d(l3, self.model['l4_w'], tf.math.round(self.model['l4_b']+_phi/_psi), padding = 'SAME', name='bin_conv2d_l4')
+        l4 = self.mod_layer(l4, modk)
         #l4 = tf.nn.batch_normalization(tf.cast(l4, dtype=tf.float32), mean=self.model['l4_mean'], variance=self.model['l4_variance'], offset=self.model['l4_beta'], scale=self.model['l4_gamma'], variance_epsilon=1e-4, name='bin_conv2d4_bn')
-        l4 = self.sign_binarize(l4)
+        l4 = -self.sign_binarize(l4 - modk/2.)
+        #l4 = self.sign_binarize(l4)
 
         _psi, _phi = self.compute_psi_phi('l5', epsilon=epsilon)
         l5 = self.bin_conv2d(l4, self.model['l5_w'], tf.math.round(self.model['l5_b']+_phi/_psi), padding = 'SAME', name='bin_conv2d_l5')
+        l5 = self.mod_layer(l5, modk)
         #l5 = tf.nn.batch_normalization(tf.cast(l5, dtype=tf.float32), mean=self.model['l5_mean'], variance=self.model['l5_variance'], offset=self.model['l5_beta'], scale=self.model['l5_gamma'], variance_epsilon=1e-4, name='bin_conv2d5_bn')
+        l5 = -self.sign_binarize(l5 - modk/2.)
         l5 = tf.nn.max_pool(l5, ksize=(2, 2), strides=(2, 2), padding='VALID')
-        l5 = self.sign_binarize(l5)
+        #l5 = self.sign_binarize(l5)
 
         l5 = tf.reshape(l5, [-1, l5.shape[1]*l5.shape[2]*l5.shape[3]])
 
         _psi, _phi = self.compute_psi_phi('l6', epsilon=epsilon)
         l6 = self.bin_dense_layer(l5, self.model['l6_w'], tf.math.round(self.model['l6_b']+_phi/_psi), name='dense0')
+        l6 = self.mod_layer(l6, modk)
         #l6 = tf.nn.batch_normalization(tf.cast(l6, dtype=tf.float32), mean=self.model['l6_mean'], variance=self.model['l6_variance'], offset=self.model['l6_beta'], scale=self.model['l6_gamma'], variance_epsilon=1e-4, name='bin_conv2d6_bn')
-        l6 = self.sign_binarize(l6)
+        l6 = -self.sign_binarize(l6 - modk/2.)
+        #l6 = self.sign_binarize(l6)
 
         _psi, _phi = self.compute_psi_phi('l7', epsilon=epsilon)
         l7 = self.bin_dense_layer(l6, self.model['l7_w'], tf.math.round(self.model['l7_b']+_phi/_psi), name='dense1')
+        l7 = self.mod_layer(l7, modk)
         #l7 = tf.nn.batch_normalization(tf.cast(l7, dtype=tf.float32), mean=self.model['l7_mean'], variance=self.model['l7_variance'], offset=self.model['l7_beta'], scale=self.model['l7_gamma'], variance_epsilon=1e-4, name='bin_conv2d7_bn')
-        l7 = self.sign_binarize(l7)
+        l7 = -self.sign_binarize(l7 - modk/2.)
+        #l7 = self.sign_binarize(l7)
 
-        l8 = self.bin_dense_layer(l7, self.model['l8_w'], self.model['l8_b'], name='dense2')
-        l8 = tf.nn.batch_normalization(tf.cast(l8, dtype=tf.float32), mean=self.model['l8_mean'], variance=self.model['l8_variance'], offset=self.model['l8_beta'], scale=self.model['l8_gamma'], variance_epsilon=1e-4, name='bin_conv2d8_bn')
+        _psi, _phi = self.compute_psi_phi('l8', epsilon=epsilon)
+        l8 = self.bin_dense_layer(l7, self.model['l8_w'], tf.math.round(self.model['l8_b']+_phi/_psi), name='dense2')
+        #l8 = tf.nn.batch_normalization(tf.cast(l8, dtype=tf.float32), mean=self.model['l8_mean'], variance=self.model['l8_variance'], offset=self.model['l8_beta'], scale=self.model['l8_gamma'], variance_epsilon=1e-4, name='bin_conv2d8_bn')
 
         return l8
 
