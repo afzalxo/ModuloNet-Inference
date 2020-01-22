@@ -21,7 +21,9 @@ def demod(logits, k):
 def main():
     model_path = './bnn_mnist_10ep_baseline.npz'# autosave-reduced-bn-10ep.npz'
     arch = bin_mlp.BinMLP(model_path)
+    #Inputs are read ranging from 0 to 1
     test_data = input_data.read_data_sets("MNIST_data/", one_hot=True).test
+    #Scaling inputs to be between -127 to +127 and integers
     for i in range(test_data.images.shape[0]):
         test_data.images[i] = np.round(127.*(test_data.images[i] * 2 - 1))
     for i in range(test_data.labels.shape[0]):
@@ -29,11 +31,9 @@ def main():
         
     y = tf.placeholder(tf.float32, [None, 10])
     inp_placeholder = tf.placeholder(tf.float32, [None, 28*28])
-    res, bn, l2_mod, l2_bn , psi0, phi0, psi1, phi1, psi2, phi2, biases0, biases1, biases2 = arch.build(inp_placeholder)
-    res1 = res#demod(res, 8.)
+    res, bn, l2_mod, l2_bn, psi0, phi0, psi1, phi1, psi2, phi2, biases0, biases1, biases2 = arch.build(inp_placeholder)
+    res1 = demod(res, 4096.)
     loss = tf.reduce_mean(tf.square(tf.maximum(0., 1.-y*res1)))
-    #lo1 = tf.where(res > 4., res, -999.0)
-    #lo2 = tf.where(res <= 4., res, -999.0)
     correct_pred = tf.equal(tf.argmax(res1, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
@@ -43,7 +43,8 @@ def main():
             run_metadata = tf.RunMetadata()
             hist = sess.run([accuracy, loss, res, bn, res1, l2_mod, l2_bn, psi0, phi0, psi1, phi1, psi2, phi2, biases0, biases1, biases2], feed_dict={inp_placeholder: test_data.images, y: test_data.labels}, options=run_opt, run_metadata = run_metadata)
             print("-------------------------------------")
-            print("Test accuracy: %f, Loss: %f" % (hist[0], hist[1]))
+            print("Test accuracy: %f" % hist[0]) #Loss: %f" % (hist[0], hist[1]))
+            print("-------------------------------------")
             bn_out = hist[3]
             plt.hist(bn_out.flatten(), bins=64)
             plt.xlabel('Value Bin')

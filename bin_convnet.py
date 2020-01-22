@@ -43,6 +43,7 @@ class BinCNN:
     def build_convnet(self, in_act):
         epsilon = 1e-4
         modk = 1024
+        #in_act = self.sign_binarize(in_act)
         _psi, _phi = self.compute_psi_phi('l0', epsilon=epsilon)
         l0 = self.bin_conv2d(in_act, self.model['l0_w'], tf.math.round(self.model['l0_b']+_phi/_psi), padding = 'SAME', name='bin_conv2d_l0')
         l0 = self.mod_layer(l0, modk)
