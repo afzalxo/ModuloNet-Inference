@@ -19,7 +19,7 @@ def demod(logits, k):
     return dist
 
 def main():
-    model_path = './bnn_mnist_10ep_baseline.npz'
+    model_path = 'autosave-modulonet-precomp-10ep.npz'#'./bnn_mnist_10ep_baseline.npz'
     arch = bin_modulonet_mlp.BinModMLP(model_path)
     #Inputs are read ranging from 0 to 1
     test_data = input_data.read_data_sets("MNIST_data/", one_hot=True).test
@@ -38,9 +38,11 @@ def main():
     correct_pred = tf.equal(tf.argmax(res1, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-    new_w, new_b = arch._precompute()
+    #new_w, new_b = arch._precompute()
     with tf.device('/gpu:0'):
         with tf.Session() as sess:
+            #new_params = sess.run([new_w, new_b])
+            #np.savez('autosave-modulonet-precomp-10ep.npz', l0_w=new_params[0][0], l0_bnew=new_params[1][0], l1_w=new_params[0][1], l1_bnew=new_params[1][1], l2_w=new_params[0][2], l2_bnew=new_params[1][2], l3_w=new_params[0][3], l3_bnew=new_params[1][3])
             run_opt = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
             run_metadata = tf.RunMetadata()
             hist = sess.run([accuracy], feed_dict={inp_placeholder: test_data.images, y: test_data.labels}, options=run_opt, run_metadata = run_metadata)
@@ -50,9 +52,6 @@ def main():
             #export_graph = tf.summary.FileWriter('./logs/bnn_inf_graph/', graph=sess.graph)
             #export_graph.add_run_metadata(run_metadata, 'run0')
             #export_graph.close()
-            new_params = sess.run([new_w, new_b])
-            np.savez('autosave-modulonet-precomp-10ep.npz', l0_w=new_params[0][0], l0_bnew=new_params[1][0], l1_w=new_params[0][1], l1_bnew=new_params[1][1], l2_w=new_params[0][2], l2_bnew=new_params[1][2], l3_w=new_params[0][3], l3_bnew=new_params[1][3])
-
 
 if __name__=='__main__':
     main()
