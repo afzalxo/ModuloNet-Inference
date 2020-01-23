@@ -39,6 +39,19 @@ class BinModMLP:
         _phi = _beta - _psi*_mean
         return _psi, _phi
 
+    def _precompute(self):
+        w_vec = []
+        b_new_vec = []
+        for i in range(0, 4):
+            w_str = 'l'+str(i)
+            new_w = self.sign_binarize(self.model[w_str+'_w'])
+            psi, phi = self.compute_psi_phi(w_str, 1e-4)
+            new_b = tf.math.round(self.model[w_str+'_b'] * phi/psi)
+            if i == 0:
+                new_b = 127*new_b
+            w_vec.append(new_w)
+            b_new_vec.append(new_b)
+        return w_vec, b_new_vec
     #Build the TF graph for ModuloNet
     def build(self, in_act):
         epsilon = 1e-4
@@ -78,4 +91,4 @@ class BinModMLP:
         layer3_dense = self.bin_dense_layer(layer2_sig, self.model['l3_w'], biases3, name='layer3_dense')
         layer3_out = self.mod_layer(layer3_dense, k3)
         layer3_out = tf.cast(layer3_out, dtype=tf.int16)
-        return layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out ,layer3_out 
+        return layer3_out 
